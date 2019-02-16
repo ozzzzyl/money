@@ -1,0 +1,102 @@
+AddDefaultCharset windows-1251
+php_value default_charset windows-1251
+
+DirectoryIndex index.php
+
+RewriteEngine on
+RewriteBase /
+
+RewriteRule ^exit/? index.php?exit=1
+RewriteRule ^login/? index.php?page=login
+RewriteRule ^contest_ref/? index.php?page=contest_ref
+RewriteRule ^contest_bet/? index.php?page=contest_bet
+RewriteRule ^faq/? index.php?page=faq
+RewriteRule ^news/([0-9]*) index.php?page=news&pn=$1
+RewriteRule ^refs/(.*)? index.php?page=refs&$1
+RewriteRule ^contacts/? index.php?page=contacts
+RewriteRule ^room/([0-9]+)/?$ index.php?page=room&num=$1
+RewriteRule ^fix/([0-9]*)/?(0*)/?$ index.php?page=fix&num=$1&my=$2
+RewriteRule ^profile/([0-9]*)\_([0-9a-z]+)/?$ index.php?page=profile&p_id=$1_$2
+RewriteRule ^cab/(.*)? index.php?page=cab&$1
+RewriteRule ^im/$ index.php?page=im
+RewriteRule ^im/([0-9]+)$ index.php?page=im&pn=$1
+RewriteRule ^dialog/([0-9]+)$ index.php?page=dialog&to=$1
+
+
+RewriteRule ^w/? index.php?page=w
+RewriteRule ^bup/?$ index.php?page=bup
+RewriteRule ^bup/pay/?$ index.php?page=bup&pay=1
+RewriteRule ^bup/nopay/?$ index.php?page=bup&nopay=1
+RewriteRule ^bup/success/?$ index.php?page=bup&success=1
+RewriteRule ^bonus/([01]) index.php?page=bonus&gif=$1
+
+
+php_value allow_url_include off
+php_value allow_url_fopen off
+
+
+# Запрещает показ списка файлов
+Options -Indexes
+
+
+# Защищаем .htaccess файл
+<files .htaccess>
+order allow,deny
+deny from all
+</files>
+
+
+# Block MySQL injections, RFI, base64, etc.
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=http:// [OR]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=(\.\.//?)+ [OR]
+RewriteCond %{QUERY_STRING} [a-zA-Z0-9_]=/([a-z0-9_.]//?)+ [NC,OR]
+RewriteCond %{QUERY_STRING} \=PHP[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12} [NC,OR]
+RewriteCond %{QUERY_STRING} (\.\./|\.\.) [OR]
+RewriteCond %{QUERY_STRING} ftp\: [NC,OR]
+RewriteCond %{QUERY_STRING} http\: [NC,OR]
+RewriteCond %{QUERY_STRING} https\: [NC,OR]
+RewriteCond %{QUERY_STRING} \=\|w\| [NC,OR]
+RewriteCond %{QUERY_STRING} ^(.*)/self/(.*)$ [NC,OR]
+RewriteCond %{QUERY_STRING} ^(.*)cPath=http://(.*)$ [NC,OR]
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (<|%3C)([^s]*s)+cript.*(>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (\<|%3C).*iframe.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (<|%3C)([^i]*i)+frame.*(>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} base64_encode.*\(.*\) [NC,OR]
+RewriteCond %{QUERY_STRING} base64_(en|de)code[^(]*\([^)]*\) [NC,OR]
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2}) [OR]
+RewriteCond %{QUERY_STRING} ^.*(\[|\]|\(|\)|<|>).* [NC,OR]
+RewriteCond %{QUERY_STRING} (NULL|OUTFILE|LOAD_FILE) [OR]
+RewriteCond %{QUERY_STRING} (\./|\../|\.../)+(motd|etc|bin) [NC,OR]
+RewriteCond %{QUERY_STRING} (localhost|loopback|127\.0\.0\.1) [NC,OR]
+RewriteCond %{QUERY_STRING} (<|>|'|%0A|%0D|%27|%3C|%3E|%00) [NC,OR]
+RewriteCond %{QUERY_STRING} concat[^\(]*\( [NC,OR]
+RewriteCond %{QUERY_STRING} union([^s]*s)+elect [NC,OR]
+RewriteCond %{QUERY_STRING} union([^a]*a)+ll([^s]*s)+elect [NC,OR]
+RewriteCond %{QUERY_STRING} (;|<|>|'|"|\)|%0A|%0D|%22|%27|%3C|%3E|%00).*(/\*|union|select|insert|drop|delete|update|cast|create|char|convert|alter|declare|order|script|set|md5|benchmark|encode) [NC,OR]
+RewriteCond %{QUERY_STRING} (sp_executesql) [NC]
+RewriteRule ^(.*)$ index.php [F,L]
+
+
+### Дополнительные блокировки #####################
+
+
+RewriteEngine on
+RewriteCond %{REQUEST_METHOD} ^(HEAD|TRACE|DELETE|TRACK)
+RewriteCond %{HTTP_REFERER} ^(.*)(<|>|’|%0A|%0D|%27|%3C|%3E|%00).* [NC,OR]
+RewriteCond %{HTTP_COOKIE} ^.*(<|>|’|%0A|%0D|%27|%3C|%3E|%00).* [NC,OR]
+RewriteRule ^(.*)$ index.php [F,L]
+
+
+# ПОДОЗРИТЕЛЬНЫЕ БРАУЗЕРЫ И ЗАПРОСЫ
+
+RewriteEngine on
+RewriteCond %{HTTP_USER_AGENT} (libwww-perl|wget|python|nikto|curl|scan|java|winhttp|clshttp|loader) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} (<|>|'|%0A|%0D|%27|%3C|%3E|%00) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} (;|<|>|'|"|\)|\(|%0A|%0D|%22|%27|%28|%3C|%3E|%00).*(libwww-perl|wget|python|nikto|curl|scan|java|winhttp|HTTrack|clshttp|archiver|loader|email|harvest|extract|grab|miner) [NC,OR]
+RewriteCond %{THE_REQUEST} \?\ HTTP/ [NC,OR]
+RewriteCond %{THE_REQUEST} \/\*\ HTTP/ [NC,OR]
+RewriteCond %{THE_REQUEST} etc/passwd [NC,OR]
+RewriteCond %{THE_REQUEST} cgi-bin
+RewriteRule ^(.*)$ index.php [F,L]
